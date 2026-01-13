@@ -1,0 +1,3051 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBT Pro - Computer Based Testing</title>
+    
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-database-compat.js"></script>
+    
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #4F46E5;
+            --primary-dark: #4338CA;
+            --primary-light: #818CF8;
+            --secondary: #10B981;
+            --danger: #EF4444;
+            --warning: #F59E0B;
+            --dark: #1F2937;
+            --gray: #6B7280;
+            --light-gray: #E5E7EB;
+            --lighter-gray: #F3F4F6;
+            --white: #FFFFFF;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            --shadow-sm: 0 4px 6px rgba(0, 0, 0, 0.05);
+            --transition: all 0.3s ease;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            color: var(--dark);
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes spin {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        @keyframes bounceIn {
+            0% { opacity: 0; transform: scale(0.3); }
+            50% { transform: scale(1.05); }
+            70% { transform: scale(0.9); }
+            100% { opacity: 1; transform: scale(1); }
+        }
+
+        .animate-fadeIn { animation: fadeIn 0.5s ease forwards; }
+        .animate-slideIn { animation: slideIn 0.5s ease forwards; }
+        .animate-slideUp { animation: slideUp 0.5s ease forwards; }
+        .animate-bounceIn { animation: bounceIn 0.6s ease forwards; }
+
+        /* Toast Notifications */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 10000;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .toast {
+            padding: 16px 24px;
+            border-radius: 12px;
+            color: white;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: var(--shadow);
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 2.7s forwards;
+            min-width: 300px;
+            max-width: 400px;
+        }
+
+        .toast.success { background: linear-gradient(135deg, #10B981, #059669); }
+        .toast.error { background: linear-gradient(135deg, #EF4444, #DC2626); }
+        .toast.warning { background: linear-gradient(135deg, #F59E0B, #D97706); }
+        .toast.info { background: linear-gradient(135deg, #3B82F6, #2563EB); }
+
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateX(100px); }
+        }
+
+        /* Loading Spinner */
+   
+
+
+
+        /* Container */
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Pages */
+        .page {
+            display: none;
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Cards */
+        .card {
+            background: var(--white);
+            border-radius: 20px;
+            box-shadow: var(--shadow);
+            padding: 40px;
+            transition: var(--transition);
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        }
+
+        .card-sm {
+            padding: 24px;
+            border-radius: 16px;
+        }
+
+        /* Buttons */
+        .btn {
+            padding: 14px 28px;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .btn:active {
+            transform: translateY(0);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, var(--primary-dark), #3730A3);
+        }
+
+        .btn-secondary {
+            background: var(--lighter-gray);
+            color: var(--dark);
+        }
+
+        .btn-secondary:hover {
+            background: var(--light-gray);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--secondary), #059669);
+            color: white;
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, var(--danger), #DC2626);
+            color: white;
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning), #D97706);
+            color: white;
+        }
+
+        .btn-sm {
+            padding: 10px 20px;
+            font-size: 14px;
+        }
+
+        .btn-lg {
+            padding: 18px 36px;
+            font-size: 18px;
+        }
+
+        .btn-icon {
+            width: 44px;
+            height: 44px;
+            padding: 0;
+            border-radius: 12px;
+        }
+
+        /* Forms */
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--dark);
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 14px 18px;
+            border: 2px solid var(--light-gray);
+            border-radius: 12px;
+            font-size: 16px;
+            font-family: inherit;
+            transition: var(--transition);
+            background: var(--white);
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+
+        .form-input::placeholder {
+            color: var(--gray);
+        }
+
+        textarea.form-input {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        select.form-input {
+            cursor: pointer;
+        }
+
+        /* Search Bar */
+        .search-bar {
+            position: relative;
+            margin-bottom: 24px;
+        }
+
+        .search-bar input {
+            padding-left: 50px;
+        }
+
+        .search-bar i {
+            position: absolute;
+            left: 18px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--gray);
+        }
+
+        /* Header */
+        .header {
+            background: var(--white);
+            padding: 16px 24px;
+            border-radius: 16px;
+            margin-bottom: 24px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow-sm);
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .logo i {
+            font-size: 28px;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .user-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: var(--lighter-gray);
+            border-radius: 30px;
+            font-weight: 500;
+        }
+
+        .timer-badge {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, var(--danger), #DC2626);
+            color: white;
+            border-radius: 30px;
+            font-weight: 600;
+        }
+
+        /* Landing Page */
+        .landing-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .landing-card {
+            max-width: 480px;
+            width: 100%;
+            text-align: center;
+        }
+
+        .landing-icon {
+            width: 100px;
+            height: 100px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 30px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            color: white;
+            font-size: 40px;
+            animation: bounceIn 0.8s ease;
+        }
+
+        .landing-title {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+
+        .landing-subtitle {
+            color: var(--gray);
+            margin-bottom: 32px;
+        }
+
+        .access-type-tabs {
+            display: flex;
+            gap: 12px;
+            margin-bottom: 24px;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 12px;
+            border: 2px solid var(--light-gray);
+            background: var(--white);
+            border-radius: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .tab-btn.active {
+            border-color: var(--primary);
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        /* Test Grid */
+        .test-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 24px;
+        }
+
+        .test-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            transition: var(--transition);
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+
+        .test-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow);
+            border-color: var(--primary-light);
+        }
+
+        .test-card-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .test-icon {
+            width: 56px;
+            height: 56px;
+            background: linear-gradient(135deg, var(--primary-light), var(--primary));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 24px;
+        }
+
+        .test-title {
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .test-meta {
+            color: var(--gray);
+            font-size: 14px;
+        }
+
+        .test-stats {
+            display: flex;
+            gap: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--light-gray);
+        }
+
+        .test-stat {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        /* Question Navigation */
+        .question-nav {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 24px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .question-nav-title {
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: var(--dark);
+        }
+
+        .question-nav-grid {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .question-nav-btn {
+            width: 44px;
+            height: 44px;
+            border: 2px solid var(--light-gray);
+            background: var(--white);
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .question-nav-btn:hover {
+            border-color: var(--primary);
+        }
+
+        .question-nav-btn.current {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .question-nav-btn.answered {
+            background: var(--secondary);
+            border-color: var(--secondary);
+            color: white;
+        }
+
+        .question-nav-btn.flagged {
+            background: var(--warning);
+            border-color: var(--warning);
+            color: white;
+        }
+
+        /* Question Card */
+        .question-container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 24px;
+        }
+
+        @media (max-width: 900px) {
+            .question-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .question-card {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .question-number {
+            display: inline-block;
+            padding: 6px 14px;
+            background: var(--lighter-gray);
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            color: var(--primary);
+            margin-bottom: 16px;
+        }
+
+        .question-text {
+            font-size: 20px;
+            font-weight: 500;
+            line-height: 1.6;
+            margin-bottom: 24px;
+            color: var(--dark);
+        }
+
+        .options-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .option-item {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 18px 20px;
+            border: 2px solid var(--light-gray);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .option-item:hover {
+            border-color: var(--primary-light);
+            background: rgba(79, 70, 229, 0.05);
+        }
+
+        .option-item.selected {
+            border-color: var(--primary);
+            background: rgba(79, 70, 229, 0.1);
+        }
+
+        .option-letter {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: var(--lighter-gray);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            flex-shrink: 0;
+            transition: var(--transition);
+        }
+
+        .option-item.selected .option-letter {
+            background: var(--primary);
+            color: white;
+        }
+
+        .option-text {
+            flex: 1;
+            font-size: 16px;
+        }
+
+        .question-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .sidebar-card {
+            background: var(--white);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .sidebar-title {
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .progress-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        .progress-bar {
+            height: 10px;
+            background: var(--lighter-gray);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            border-radius: 5px;
+            transition: width 0.3s ease;
+        }
+
+        .legend {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 14px;
+        }
+
+        .legend-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 4px;
+        }
+
+        .legend-dot.current { background: var(--primary); }
+        .legend-dot.answered { background: var(--secondary); }
+        .legend-dot.unanswered { background: var(--light-gray); }
+        .legend-dot.flagged { background: var(--warning); }
+
+        /* Results */
+        .results-card {
+            max-width: 600px;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .results-icon {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 24px;
+            font-size: 48px;
+            animation: bounceIn 0.8s ease;
+        }
+
+        .results-icon.pass {
+            background: linear-gradient(135deg, var(--secondary), #059669);
+            color: white;
+        }
+
+        .results-icon.fail {
+            background: linear-gradient(135deg, var(--danger), #DC2626);
+            color: white;
+        }
+
+        .results-score {
+            font-size: 64px;
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 8px;
+        }
+
+        .results-label {
+            font-size: 18px;
+            color: var(--gray);
+            margin-bottom: 32px;
+        }
+
+        .results-stats {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .result-stat {
+            padding: 16px;
+            background: var(--lighter-gray);
+            border-radius: 12px;
+        }
+
+        .result-stat-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--dark);
+        }
+
+        .result-stat-label {
+            font-size: 14px;
+            color: var(--gray);
+        }
+
+        /* Leaderboard */
+        .leaderboard-container {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: var(--shadow);
+        }
+
+        .leaderboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .leaderboard-title {
+            font-size: 24px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .leaderboard-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .leaderboard-table th,
+        .leaderboard-table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .leaderboard-table th {
+            font-weight: 600;
+            color: var(--gray);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .leaderboard-table tr:hover {
+            background: var(--lighter-gray);
+        }
+
+        .rank-badge {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .rank-1 { background: linear-gradient(135deg, #FFD700, #FFA500); color: white; }
+        .rank-2 { background: linear-gradient(135deg, #C0C0C0, #A0A0A0); color: white; }
+        .rank-3 { background: linear-gradient(135deg, #CD7F32, #8B4513); color: white; }
+        .rank-other { background: var(--lighter-gray); color: var(--gray); }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        /* Admin Section */
+        .admin-container {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 24px;
+            min-height: calc(100vh - 140px);
+        }
+
+        @media (max-width: 900px) {
+            .admin-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .admin-sidebar {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--shadow-sm);
+            height: fit-content;
+        }
+
+        .admin-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .admin-nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 16px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+            font-weight: 500;
+        }
+
+        .admin-nav-item:hover {
+            background: var(--lighter-gray);
+        }
+
+        .admin-nav-item.active {
+            background: linear-gradient(135deg, var(--primary), var(--primary-dark));
+            color: white;
+        }
+
+        .admin-content {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 32px;
+            box-shadow: var(--shadow-sm);
+        }
+
+        .admin-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .admin-title {
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        /* Table */
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .data-table th,
+        .data-table td {
+            padding: 16px;
+            text-align: left;
+            border-bottom: 1px solid var(--light-gray);
+        }
+
+        .data-table th {
+            font-weight: 600;
+            color: var(--gray);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--lighter-gray);
+        }
+
+        .data-table th:first-child {
+            border-radius: 10px 0 0 10px;
+        }
+
+        .data-table th:last-child {
+            border-radius: 0 10px 10px 0;
+        }
+
+        .data-table tr:hover {
+            background: var(--lighter-gray);
+        }
+
+        .action-btns {
+            display: flex;
+            gap: 8px;
+        }
+
+        .status-badge {
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        .status-active {
+            background: rgba(16, 185, 129, 0.1);
+            color: var(--secondary);
+        }
+
+        .status-expired {
+            background: rgba(239, 68, 68, 0.1);
+            color: var(--danger);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--white);
+            border-radius: 20px;
+            padding: 32px;
+            max-width: 500px;
+            width: 90%;
+            max-height: 90vh;
+            overflow-y: auto;
+            transform: scale(0.9);
+            transition: var(--transition);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+        }
+
+        .modal-title {
+            font-size: 20px;
+            font-weight: 700;
+        }
+
+        .modal-close {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: var(--lighter-gray);
+            border-radius: 10px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: var(--transition);
+        }
+
+        .modal-close:hover {
+            background: var(--light-gray);
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 12px;
+            margin-top: 24px;
+            justify-content: flex-end;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--gray);
+        }
+
+        .empty-state i {
+            font-size: 64px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 8px;
+            color: var(--dark);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .header {
+                padding: 12px 16px;
+            }
+
+            .logo {
+                font-size: 20px;
+            }
+
+            .card {
+                padding: 24px;
+            }
+
+            .landing-title {
+                font-size: 24px;
+            }
+
+            .test-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .results-stats {
+                grid-template-columns: 1fr;
+            }
+
+            .results-score {
+                font-size: 48px;
+            }
+
+            .data-table {
+                display: block;
+                overflow-x: auto;
+            }
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+            height: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--lighter-gray);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--gray);
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--dark);
+        }
+    </style>
+</head>
+<body>
+    <!-- Toast Container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="spinner"></div>
+        <p></p>
+    </div>
+
+    <!-- Landing Page -->
+    <div class="page active" id="landingPage">
+        <div class="landing-container">
+            <div class="card landing-card animate-bounceIn">
+                <div class="landing-icon">
+                    <i class="fas fa-graduation-cap"></i>
+                </div>
+                <h1 class="landing-title">CBT Pro</h1>
+                <p class="landing-subtitle">CBT System <br><br>Message 08107528980 on whatsapp to get access code</p>
+                
+                <div class="access-type-tabs">
+                    <button class="tab-btn active" onclick="switchAccessTab('user')">
+                        <i class="fas fa-user"></i> User
+                    </button>
+                    <button class="tab-btn" onclick="switchAccessTab('admin')">
+                        <i class="fas fa-shield-alt"></i> Admin
+                    </button>
+                </div>
+
+                <div id="userAccessForm">
+                    <div class="form-group">
+                        <input type="text" class="form-input" id="accessCodeInput" 
+                            placeholder="Enter your access code" style="text-align: center; font-size: 18px; letter-spacing: 2px;">
+                    </div>
+                    <button class="btn btn-primary btn-lg" style="width: 100%;" onclick="verifyAccessCode()">
+                        <i class="fas fa-sign-in-alt"></i> Access Tests
+                    </button>
+                </div>
+
+                <div id="adminAccessForm" style="display: none;">
+                    <div class="form-group">
+                        <input type="password" class="form-input" id="adminCodeInput" 
+                            placeholder="Enter admin code" style="text-align: center; font-size: 18px; letter-spacing: 2px;">
+                    </div>
+                    <button class="btn btn-primary btn-lg" style="width: 100%;" onclick="verifyAdminCode()">
+                        <i class="fas fa-lock-open"></i> Access Admin Panel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Selection Page -->
+    <div class="page" id="testSelectionPage">
+        <div class="container">
+            <header class="header">
+                <div class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>CBT Pro</span>
+                </div>
+                <div class="user-info">
+                    <div class="timer-badge" id="sessionTimer">
+                        <i class="fas fa-clock"></i>
+                        <span id="timerDisplay">00:00</span>
+                    </div>
+                    <div class="user-badge">
+                        <i class="fas fa-user"></i>
+                        <span id="currentUserName">User</span>
+                    </div>
+                    <button class="btn btn-secondary btn-sm" onclick="viewLeaderboard()">
+                        <i class="fas fa-trophy"></i> Leaderboard
+                    </button>
+                    <button class="btn btn-danger btn-sm" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i>
+                    </button>
+                </div>
+            </header>
+
+            <div class="search-bar">
+                <i class="fas fa-search"></i>
+                <input type="text" class="form-input" id="testSearchInput" 
+                    placeholder="Search tests..." oninput="filterTests()">
+            </div>
+
+            <div class="test-grid" id="testGrid">
+                <!-- Tests will be loaded here -->
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Taking Page -->
+    <div class="page" id="testTakingPage">
+        <div class="container">
+            <header class="header">
+                <div class="logo">
+                    <i class="fas fa-file-alt"></i>
+                    <span id="currentTestName">Test Name</span>
+                </div>
+                <div class="user-info">
+                    <div class="timer-badge" id="testTimer">
+                        <i class="fas fa-clock"></i>
+                        <span id="testTimerDisplay">00:00</span>
+                    </div>
+                    <button class="btn btn-success btn-sm" onclick="submitTest()">
+                        <i class="fas fa-check"></i> Submit Test
+                    </button>
+                </div>
+            </header>
+
+            <div class="question-container">
+                <div class="question-main">
+                    <div class="question-card" id="questionCard">
+                        <!-- Question content will be loaded here -->
+                    </div>
+                </div>
+                
+                <div class="sidebar">
+                    <div class="sidebar-card">
+                        <div class="sidebar-title">
+                            <i class="fas fa-tasks"></i> Progress
+                        </div>
+                        <div class="progress-info">
+                            <span id="answeredCount">0 answered</span>
+                            <span id="totalQuestions">of 0</span>
+                        </div>
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="sidebar-card">
+                        <div class="sidebar-title">
+                            <i class="fas fa-th"></i> Question Navigation
+                        </div>
+                        <div class="question-nav-grid" id="questionNavGrid">
+                            <!-- Question navigation buttons -->
+                        </div>
+                    </div>
+
+                    <div class="sidebar-card">
+                        <div class="sidebar-title">
+                            <i class="fas fa-info-circle"></i> Legend
+                        </div>
+                        <div class="legend">
+                            <div class="legend-item">
+                                <div class="legend-dot current"></div>
+                                <span>Current</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot answered"></div>
+                                <span>Answered</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot unanswered"></div>
+                                <span>Unanswered</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-dot flagged"></div>
+                                <span>Flagged</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Results Page -->
+    <div class="page" id="resultsPage">
+        <div class="container">
+            <header class="header">
+                <div class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>CBT Pro</span>
+                </div>
+                <div class="user-info">
+                    <button class="btn btn-primary btn-sm" onclick="backToTests()">
+                        <i class="fas fa-arrow-left"></i> Back to Tests
+                    </button>
+                </div>
+            </header>
+
+            <div class="card results-card animate-bounceIn">
+                <div class="results-icon" id="resultsIcon">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <div class="results-score" id="scoreDisplay">0%</div>
+                <p class="results-label" id="resultMessage">Test Completed!</p>
+                
+                <div class="results-stats">
+                    <div class="result-stat">
+                        <div class="result-stat-value" id="correctCount">0</div>
+                        <div class="result-stat-label">Correct</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-value" id="wrongCount">0</div>
+                        <div class="result-stat-label">Wrong</div>
+                    </div>
+                    <div class="result-stat">
+                        <div class="result-stat-value" id="skippedCount">0</div>
+                        <div class="result-stat-label">Skipped</div>
+                    </div>
+                </div>
+
+                <div style="display: flex; gap: 12px; justify-content: center;">
+                    <button class="btn btn-primary" onclick="backToTests()">
+                        <i class="fas fa-redo"></i> Take Another Test
+                    </button>
+                    <button class="btn btn-secondary" onclick="viewLeaderboard()">
+                        <i class="fas fa-trophy"></i> View Leaderboard
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Leaderboard Page -->
+    <div class="page" id="leaderboardPage">
+        <div class="container">
+            <header class="header">
+                <div class="logo">
+                    <i class="fas fa-graduation-cap"></i>
+                    <span>CBT Pro</span>
+                </div>
+                <div class="user-info">
+                    <button class="btn btn-primary btn-sm" onclick="backToTests()">
+                        <i class="fas fa-arrow-left"></i> Back to Tests
+                    </button>
+                </div>
+            </header>
+
+            <div class="leaderboard-container animate-slideUp">
+                <div class="leaderboard-header">
+                    <h2 class="leaderboard-title">
+                        <i class="fas fa-trophy" style="color: #FFD700;"></i>
+                        Leaderboard
+                    </h2>
+                    <div class="search-bar" style="margin: 0; width: 300px;">
+                        <i class="fas fa-search"></i>
+                        <input type="text" class="form-input" id="leaderboardSearch" 
+                            placeholder="Search users..." oninput="filterLeaderboard()">
+                    </div>
+                </div>
+
+                <table class="leaderboard-table">
+                    <thead>
+                        <tr>
+                            <th>Rank</th>
+                            <th>User</th>
+                            <th>Tests Taken</th>
+                            <th>Avg Score</th>
+                            <th>Best Score</th>
+                        </tr>
+                    </thead>
+                    <tbody id="leaderboardBody">
+                        <!-- Leaderboard data -->
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Page -->
+    <div class="page" id="adminPage">
+        <div class="container">
+            <header class="header">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Admin Panel</span>
+                </div>
+                <div class="user-info">
+                    <button class="btn btn-danger btn-sm" onclick="logout()">
+                        <i class="fas fa-sign-out-alt"></i> Logout
+                    </button>
+                </div>
+            </header>
+
+            <div class="admin-container">
+                <div class="admin-sidebar">
+                    <nav class="admin-nav">
+                        <div class="admin-nav-item active" onclick="switchAdminTab('codes')">
+                            <i class="fas fa-key"></i>
+                            <span>Access Codes</span>
+                        </div>
+                        <div class="admin-nav-item" onclick="switchAdminTab('tests')">
+                            <i class="fas fa-file-alt"></i>
+                            <span>Tests</span>
+                        </div>
+                        <div class="admin-nav-item" onclick="switchAdminTab('questions')">
+                            <i class="fas fa-question-circle"></i>
+                            <span>Questions</span>
+                        </div>
+                        <div class="admin-nav-item" onclick="switchAdminTab('leaderboard')">
+                            <i class="fas fa-trophy"></i>
+                            <span>Leaderboard</span>
+                        </div>
+                    </nav>
+                </div>
+
+                <div class="admin-content">
+                    <!-- Access Codes Tab -->
+                    <div class="admin-tab active" id="codesTab">
+                        <div class="admin-header">
+                            <h2 class="admin-title">Access Codes Management</h2>
+                            <button class="btn btn-primary" onclick="openAddCodeModal()">
+                                <i class="fas fa-plus"></i> Add Access Code
+                            </button>
+                        </div>
+
+                        <div class="search-bar">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-input" id="codeSearchInput" 
+                                placeholder="Search access codes..." oninput="filterCodes()">
+                        </div>
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>User Name</th>
+                                    <th>Access Code</th>
+                                    <th>Time Left</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="codesTableBody">
+                                <!-- Access codes data -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Tests Tab -->
+                    <div class="admin-tab" id="testsTab" style="display: none;">
+                        <div class="admin-header">
+                            <h2 class="admin-title">Tests Management</h2>
+                            <button class="btn btn-primary" onclick="openAddTestModal()">
+                                <i class="fas fa-plus"></i> Add Test
+                            </button>
+                        </div>
+
+                        <div class="search-bar">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-input" id="adminTestSearchInput" 
+                                placeholder="Search tests..." oninput="filterAdminTests()">
+                        </div>
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Test Name</th>
+                                    <th>Questions</th>
+                                    <th>Created</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="testsTableBody">
+                                <!-- Tests data -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Questions Tab -->
+                    <div class="admin-tab" id="questionsTab" style="display: none;">
+                        <div class="admin-header">
+                            <h2 class="admin-title">Questions Management</h2>
+                            <button class="btn btn-primary" onclick="openAddQuestionModal()">
+                                <i class="fas fa-plus"></i> Add Question
+                            </button>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Select Test</label>
+                            <select class="form-input" id="questionTestSelect" onchange="loadQuestionsForTest()">
+                                <option value="">Choose a test...</option>
+                            </select>
+                        </div>
+
+                        <table class="data-table" id="questionsTable" style="display: none;">
+                            <thead>
+                                <tr>
+                                    <th>#</th>
+                                    <th>Question</th>
+                                    <th>Options</th>
+                                    <th>Answer</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody id="questionsTableBody">
+                                <!-- Questions data -->
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Admin Leaderboard Tab -->
+                    <div class="admin-tab" id="adminLeaderboardTab" style="display: none;">
+                        <div class="admin-header">
+                            <h2 class="admin-title">User Leaderboard</h2>
+                        </div>
+
+                        <div class="search-bar">
+                            <i class="fas fa-search"></i>
+                            <input type="text" class="form-input" id="adminLeaderboardSearch" 
+                                placeholder="Search users..." oninput="filterAdminLeaderboard()">
+                        </div>
+
+                        <table class="data-table">
+                            <thead>
+                                <tr>
+                                    <th>Rank</th>
+                                    <th>User Name</th>
+                                    <th>Tests Taken</th>
+                                    <th>Average Score</th>
+                                    <th>Best Score</th>
+                                </tr>
+                            </thead>
+                            <tbody id="adminLeaderboardBody">
+                                <!-- Leaderboard data -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Access Code Modal -->
+    <div class="modal-overlay" id="addCodeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Generate Access Code</h3>
+                <button class="modal-close" onclick="closeModal('addCodeModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">User Name</label>
+                <input type="text" class="form-input" id="newUserName" placeholder="Enter user's full name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Duration (minutes)</label>
+                <input type="number" class="form-input" id="codeDuration" placeholder="Enter duration in minutes" min="1">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('addCodeModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="generateAccessCode()">Generate Code</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Extend Time Modal -->
+    <div class="modal-overlay" id="extendTimeModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Extend Access Time</h3>
+                <button class="modal-close" onclick="closeModal('extendTimeModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Additional Minutes</label>
+                <input type="number" class="form-input" id="extendMinutes" placeholder="Enter minutes to add" min="1">
+            </div>
+            <input type="hidden" id="extendCodeId">
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('extendTimeModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="extendAccessTime()">Extend Time</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Test Modal -->
+    <div class="modal-overlay" id="testModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title" id="testModalTitle">Add New Test</h3>
+                <button class="modal-close" onclick="closeModal('testModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Test Name</label>
+                <input type="text" class="form-input" id="testName" placeholder="Enter test name">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-input" id="testDescription" placeholder="Enter test description"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Time Limit (minutes)</label>
+                <input type="number" class="form-input" id="testTimeLimit" placeholder="Enter time limit" min="1">
+            </div>
+            <input type="hidden" id="editTestId">
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('testModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveTest()">Save Test</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Question Modal -->
+    <div class="modal-overlay" id="questionModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Add New Question</h3>
+                <button class="modal-close" onclick="closeModal('questionModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Select Test</label>
+                <select class="form-input" id="questionModalTestSelect">
+                    <option value="">Choose a test...</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Question</label>
+                <textarea class="form-input" id="questionText" placeholder="Enter the question"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Option A</label>
+                <input type="text" class="form-input" id="optionA" placeholder="Enter option A">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Option B</label>
+                <input type="text" class="form-input" id="optionB" placeholder="Enter option B">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Option C</label>
+                <input type="text" class="form-input" id="optionC" placeholder="Enter option C">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Option D</label>
+                <input type="text" class="form-input" id="optionD" placeholder="Enter option D">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Correct Answer</label>
+                <select class="form-input" id="correctAnswer">
+                    <option value="">Select correct answer</option>
+                    <option value="A">Option A</option>
+                    <option value="B">Option B</option>
+                    <option value="C">Option C</option>
+                    <option value="D">Option D</option>
+                </select>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('questionModal')">Cancel</button>
+                <button class="btn btn-primary" onclick="saveQuestion()">Save Question</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Confirm Delete Modal -->
+    <div class="modal-overlay" id="confirmModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 class="modal-title">Confirm Delete</h3>
+                <button class="modal-close" onclick="closeModal('confirmModal')">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <p id="confirmMessage">Are you sure you want to delete this item?</p>
+            <input type="hidden" id="deleteItemId">
+            <input type="hidden" id="deleteItemType">
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal('confirmModal')">Cancel</button>
+                <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Firebase Configuration - Replace with your own config
+        const firebaseConfig = {
+apiKey: "AIzaSyDF_9wgi0RrNL1LbWspDT1Z_UXvSgF1WuU",
+  authDomain: "daniellll-4ff68.firebaseapp.com",
+  databaseURL: "https://daniellll-4ff68-default-rtdb.firebaseio.com",
+  projectId: "daniellll-4ff68",
+  storageBucket: "daniellll-4ff68.firebasestorage.app",
+  messagingSenderId: "945551011433",
+  appId: "1:945551011433:web:8db8a18af4537f81aa7cf8"
+        };
+
+        // Initialize Firebase
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.database();
+
+        // Global State
+        let currentUser = null;
+        let currentTest = null;
+        let currentQuestionIndex = 0;
+        let userAnswers = {};
+        let flaggedQuestions = new Set();
+        let sessionTimerInterval = null;
+        let testTimerInterval = null;
+        let sessionEndTime = null;
+        let allTests = [];
+        let allAccessCodes = [];
+        let currentTestQuestions = [];
+
+        // Toast Notification System
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icons = {
+                success: 'fa-check-circle',
+                error: 'fa-exclamation-circle',
+                warning: 'fa-exclamation-triangle',
+                info: 'fa-info-circle'
+            };
+
+            toast.innerHTML = `
+                <i class="fas ${icons[type]}"></i>
+                <span>${message}</span>
+            `;
+
+            container.appendChild(toast);
+
+            setTimeout(() => {
+                toast.remove();
+            }, 3000);
+        }
+
+        // Loading Functions
+        function showLoading() {
+            document.getElementById('loadingOverlay').style.display = 'flex';
+        }
+
+        function hideLoading() {
+            document.getElementById('loadingOverlay').style.display = 'none';
+        }
+
+        // Page Navigation
+        function showPage(pageId) {
+            document.querySelectorAll('.page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.getElementById(pageId).classList.add('active');
+        }
+
+        // Access Tab Switching
+        function switchAccessTab(type) {
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            if (type === 'user') {
+                document.getElementById('userAccessForm').style.display = 'block';
+                document.getElementById('adminAccessForm').style.display = 'none';
+            } else {
+                document.getElementById('userAccessForm').style.display = 'none';
+                document.getElementById('adminAccessForm').style.display = 'block';
+            }
+        }
+
+        // Modal Functions
+        function openModal(modalId) {
+            document.getElementById(modalId).classList.add('active');
+        }
+
+        function closeModal(modalId) {
+            document.getElementById(modalId).classList.remove('active');
+        }
+
+        // Initialize Default Data
+        async function initializeDefaultData() {
+            showLoading();
+            
+            try {
+                // Check if data exists
+                const testsSnapshot = await db.ref('tests').once('value');
+                const codesSnapshot = await db.ref('accessCodes').once('value');
+
+                // Initialize default tests if none exist
+                if (!testsSnapshot.exists()) {
+                    const defaultTests = [
+                        {
+                            name: 'Mathematics Basics',
+                            description: 'Test your basic mathematics skills',
+                            timeLimit: 10,
+                            createdAt: Date.now(),
+                            questions: [
+                                {
+                                    question: 'What is 5 + 7?',
+                                    options: { A: '10', B: '11', C: '12', D: '13' },
+                                    correctAnswer: 'C'
+                                },
+                                {
+                                    question: 'What is 15 - 8?',
+                                    options: { A: '5', B: '6', C: '7', D: '8' },
+                                    correctAnswer: 'C'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'English Grammar',
+                            description: 'Test your English grammar knowledge',
+                            timeLimit: 10,
+                            createdAt: Date.now(),
+                            questions: [
+                                {
+                                    question: 'Which is the correct spelling?',
+                                    options: { A: 'Recieve', B: 'Receive', C: 'Recive', D: 'Receeve' },
+                                    correctAnswer: 'B'
+                                },
+                                {
+                                    question: 'Choose the correct verb: She ___ to school every day.',
+                                    options: { A: 'go', B: 'goes', C: 'going', D: 'gone' },
+                                    correctAnswer: 'B'
+                                }
+                            ]
+                        },
+                        {
+                            name: 'General Knowledge',
+                            description: 'Test your general knowledge',
+                            timeLimit: 10,
+                            createdAt: Date.now(),
+                            questions: [
+                                {
+                                    question: 'What is the capital of France?',
+                                    options: { A: 'London', B: 'Berlin', C: 'Paris', D: 'Madrid' },
+                                    correctAnswer: 'C'
+                                },
+                                {
+                                    question: 'Which planet is known as the Red Planet?',
+                                    options: { A: 'Venus', B: 'Mars', C: 'Jupiter', D: 'Saturn' },
+                                    correctAnswer: 'B'
+                                }
+                            ]
+                        }
+                    ];
+
+                    for (const test of defaultTests) {
+                        await db.ref('tests').push(test);
+                    }
+                }
+
+                // Initialize default access codes if none exist
+                if (!codesSnapshot.exists()) {
+                    const defaultCodes = [
+                        {
+                            userName: 'John Smith',
+                            code: 'JOH' + generateRandomString(4),
+                            expiresAt: Date.now() + (60 * 60 * 1000), // 1 hour
+                            createdAt: Date.now()
+                        },
+                        {
+                            userName: 'Jane Doe',
+                            code: 'JAN' + generateRandomString(4),
+                            expiresAt: Date.now() + (60 * 60 * 1000),
+                            createdAt: Date.now()
+                        },
+                        {
+                            userName: 'Mike Wilson',
+                            code: 'MIK' + generateRandomString(4),
+                            expiresAt: Date.now() + (60 * 60 * 1000),
+                            createdAt: Date.now()
+                        }
+                    ];
+
+                    for (const code of defaultCodes) {
+                        await db.ref('accessCodes').push(code);
+                    }
+                }
+
+                hideLoading();
+            } catch (error) {
+                hideLoading();
+                console.error('Error initializing data:', error);
+                showToast('Error initializing data', 'error');
+            }
+        }
+
+        // Generate Random String
+        function generateRandomString(length) {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let result = '';
+            for (let i = 0; i < length; i++) {
+                result += chars.charAt(Math.floor(Math.random() * chars.length));
+            }
+            return result;
+        }
+
+        // Verify Access Code
+        async function verifyAccessCode() {
+            const code = document.getElementById('accessCodeInput').value.trim().toUpperCase();
+            
+            if (!code) {
+                showToast('Please enter an access code', 'warning');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const snapshot = await db.ref('accessCodes').orderByChild('code').equalTo(code).once('value');
+                
+                if (!snapshot.exists()) {
+                    hideLoading();
+                    showToast('Invalid access code', 'error');
+                    return;
+                }
+
+                let accessData = null;
+                let accessId = null;
+
+                snapshot.forEach(child => {
+                    accessData = child.val();
+                    accessId = child.key;
+                });
+
+                if (accessData.expiresAt < Date.now()) {
+                    hideLoading();
+                    showToast('Access code has expired', 'error');
+                    return;
+                }
+
+                currentUser = {
+                    id: accessId,
+                    name: accessData.userName,
+                    code: accessData.code,
+                    expiresAt: accessData.expiresAt
+                };
+
+                sessionEndTime = accessData.expiresAt;
+                startSessionTimer();
+                
+                document.getElementById('currentUserName').textContent = currentUser.name;
+                
+                await loadTests();
+                showPage('testSelectionPage');
+                hideLoading();
+                showToast(`Welcome, ${currentUser.name}!`, 'success');
+
+            } catch (error) {
+                hideLoading();
+                console.error('Error verifying code:', error);
+                showToast('Error verifying access code', 'error');
+            }
+        }
+
+        // Verify Admin Code
+        function verifyAdminCode() {
+            const code = document.getElementById('adminCodeInput').value.trim();
+            
+            if (code === 'OFUJE673') {
+                showPage('adminPage');
+                loadAdminData();
+                showToast('Welcome, Admin!', 'success');
+            } else {
+                showToast('Invalid admin code', 'error');
+            }
+        }
+
+        // Session Timer
+        function startSessionTimer() {
+            if (sessionTimerInterval) {
+                clearInterval(sessionTimerInterval);
+            }
+
+            updateSessionTimer();
+            sessionTimerInterval = setInterval(updateSessionTimer, 1000);
+        }
+
+        function updateSessionTimer() {
+            const now = Date.now();
+            const remaining = sessionEndTime - now;
+
+            if (remaining <= 0) {
+                clearInterval(sessionTimerInterval);
+                showToast('Session expired!', 'error');
+                logout();
+                return;
+            }
+
+            const minutes = Math.floor(remaining / 60000);
+            const seconds = Math.floor((remaining % 60000) / 1000);
+            
+            document.getElementById('timerDisplay').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        // Load Tests
+        async function loadTests() {
+            try {
+                const snapshot = await db.ref('tests').once('value');
+                allTests = [];
+
+                snapshot.forEach(child => {
+                    allTests.push({
+                        id: child.key,
+                        ...child.val()
+                    });
+                });
+
+                renderTests();
+            } catch (error) {
+                console.error('Error loading tests:', error);
+                showToast('Error loading tests', 'error');
+            }
+        }
+
+        // Render Tests
+        function renderTests(tests = allTests) {
+            const grid = document.getElementById('testGrid');
+            
+            if (tests.length === 0) {
+                grid.innerHTML = `
+                    <div class="empty-state">
+                        <i class="fas fa-folder-open"></i>
+                        <h3>No Tests Found</h3>
+                        <p>There are no tests available at the moment.</p>
+                    </div>
+                `;
+                return;
+            }
+
+            grid.innerHTML = tests.map((test, index) => {
+                const questions = test.questions || [];
+                return `
+                    <div class="test-card animate-slideUp" style="animation-delay: ${index * 0.1}s" 
+                         onclick="startTest('${test.id}')">
+                        <div class="test-card-header">
+                            <div class="test-icon">
+                                <i class="fas fa-file-alt"></i>
+                            </div>
+                            <div>
+                                <h3 class="test-title">${test.name}</h3>
+                                <p class="test-meta">${test.description || 'No description'}</p>
+                            </div>
+                        </div>
+                        <div class="test-stats">
+                            <div class="test-stat">
+                                <i class="fas fa-question-circle"></i>
+                                <span>${questions.length} Questions</span>
+                            </div>
+                            <div class="test-stat">
+                                <i class="fas fa-clock"></i>
+                                <span>${test.timeLimit || 30} mins</span>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // Filter Tests
+        function filterTests() {
+            const searchTerm = document.getElementById('testSearchInput').value.toLowerCase();
+            const filtered = allTests.filter(test => 
+                test.name.toLowerCase().includes(searchTerm) ||
+                (test.description && test.description.toLowerCase().includes(searchTerm))
+            );
+            renderTests(filtered);
+        }
+
+        // Start Test
+        async function startTest(testId) {
+            const test = allTests.find(t => t.id === testId);
+            
+            if (!test) {
+                showToast('Test not found', 'error');
+                return;
+            }
+
+            if (!test.questions || test.questions.length === 0) {
+                showToast('This test has no questions', 'warning');
+                return;
+            }
+
+            currentTest = test;
+            currentTestQuestions = test.questions;
+            currentQuestionIndex = 0;
+            userAnswers = {};
+            flaggedQuestions = new Set();
+
+            document.getElementById('currentTestName').textContent = test.name;
+            
+            startTestTimer(test.timeLimit || 30);
+            renderQuestionNavigation();
+            renderQuestion();
+            
+            showPage('testTakingPage');
+            showToast('Test started! Good luck!', 'success');
+        }
+
+        // Test Timer
+        function startTestTimer(minutes) {
+            const endTime = Date.now() + (minutes * 60 * 1000);
+
+            if (testTimerInterval) {
+                clearInterval(testTimerInterval);
+            }
+
+            function updateTimer() {
+                const remaining = endTime - Date.now();
+                
+                if (remaining <= 0) {
+                    clearInterval(testTimerInterval);
+                    showToast('Time is up!', 'warning');
+                    submitTest();
+                    return;
+                }
+
+                const mins = Math.floor(remaining / 60000);
+                const secs = Math.floor((remaining % 60000) / 1000);
+                
+                document.getElementById('testTimerDisplay').textContent = 
+                    `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            }
+
+            updateTimer();
+            testTimerInterval = setInterval(updateTimer, 1000);
+        }
+
+        // Render Question Navigation
+        function renderQuestionNavigation() {
+            const grid = document.getElementById('questionNavGrid');
+            
+            grid.innerHTML = currentTestQuestions.map((_, index) => {
+                let classes = 'question-nav-btn';
+                if (index === currentQuestionIndex) classes += ' current';
+                else if (userAnswers[index] !== undefined) classes += ' answered';
+                if (flaggedQuestions.has(index)) classes += ' flagged';
+                
+                return `
+                    <button class="${classes}" onclick="goToQuestion(${index})">
+                        ${index + 1}
+                    </button>
+                `;
+            }).join('');
+
+            updateProgress();
+        }
+
+        // Update Progress
+        function updateProgress() {
+            const answered = Object.keys(userAnswers).length;
+            const total = currentTestQuestions.length;
+            const percentage = (answered / total) * 100;
+
+            document.getElementById('answeredCount').textContent = `${answered} answered`;
+            document.getElementById('totalQuestions').textContent = `of ${total}`;
+            document.getElementById('progressFill').style.width = `${percentage}%`;
+        }
+
+        // Go to Question
+        function goToQuestion(index) {
+            currentQuestionIndex = index;
+            renderQuestion();
+            renderQuestionNavigation();
+        }
+
+        // Render Question
+        function renderQuestion() {
+            const question = currentTestQuestions[currentQuestionIndex];
+            const card = document.getElementById('questionCard');
+            const selectedAnswer = userAnswers[currentQuestionIndex];
+            const isFlagged = flaggedQuestions.has(currentQuestionIndex);
+
+            card.innerHTML = `
+                <div class="question-number">Question ${currentQuestionIndex + 1} of ${currentTestQuestions.length}</div>
+                <p class="question-text">${question.question}</p>
+                
+                <div class="options-list">
+                    ${Object.entries(question.options).map(([key, value]) => `
+                        <div class="option-item ${selectedAnswer === key ? 'selected' : ''}" 
+                             onclick="selectAnswer('${key}')">
+                            <div class="option-letter">${key}</div>
+                            <div class="option-text">${value}</div>
+                        </div>
+                    `).join('')}
+                </div>
+
+                <div class="question-actions">
+                    <button class="btn btn-secondary" onclick="previousQuestion()" 
+                            ${currentQuestionIndex === 0 ? 'disabled' : ''}>
+                        <i class="fas fa-arrow-left"></i> Previous
+                    </button>
+                    <button class="btn ${isFlagged ? 'btn-warning' : 'btn-secondary'}" onclick="toggleFlag()">
+                        <i class="fas fa-flag"></i> ${isFlagged ? 'Unflag' : 'Flag'}
+                    </button>
+                    ${currentQuestionIndex === currentTestQuestions.length - 1 ? `
+                        <button class="btn btn-success" onclick="submitTest()">
+                            <i class="fas fa-check"></i> Submit Test
+                        </button>
+                    ` : `
+                        <button class="btn btn-primary" onclick="nextQuestion()">
+                            Next <i class="fas fa-arrow-right"></i>
+                        </button>
+                    `}
+                </div>
+            `;
+        }
+
+        // Select Answer
+        function selectAnswer(answer) {
+            userAnswers[currentQuestionIndex] = answer;
+            renderQuestion();
+            renderQuestionNavigation();
+        }
+
+        // Navigation
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                renderQuestion();
+                renderQuestionNavigation();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < currentTestQuestions.length - 1) {
+                currentQuestionIndex++;
+                renderQuestion();
+                renderQuestionNavigation();
+            }
+        }
+
+        // Toggle Flag
+        function toggleFlag() {
+            if (flaggedQuestions.has(currentQuestionIndex)) {
+                flaggedQuestions.delete(currentQuestionIndex);
+            } else {
+                flaggedQuestions.add(currentQuestionIndex);
+            }
+            renderQuestion();
+            renderQuestionNavigation();
+        }
+
+        // Submit Test
+        async function submitTest() {
+            if (testTimerInterval) {
+                clearInterval(testTimerInterval);
+            }
+
+            showLoading();
+
+            let correct = 0;
+            let wrong = 0;
+            let skipped = 0;
+
+            currentTestQuestions.forEach((question, index) => {
+                if (userAnswers[index] === undefined) {
+                    skipped++;
+                } else if (userAnswers[index] === question.correctAnswer) {
+                    correct++;
+                } else {
+                    wrong++;
+                }
+            });
+
+            const score = Math.round((correct / currentTestQuestions.length) * 100);
+            const passed = score >= 50;
+
+            // Save result to Firebase
+            try {
+                await db.ref('results').push({
+                    userName: currentUser.name,
+                    testId: currentTest.id,
+                    testName: currentTest.name,
+                    score: score,
+                    correct: correct,
+                    wrong: wrong,
+                    skipped: skipped,
+                    total: currentTestQuestions.length,
+                    completedAt: Date.now()
+                });
+
+                // Update leaderboard
+                await updateLeaderboard(score);
+
+            } catch (error) {
+                console.error('Error saving result:', error);
+            }
+
+            // Display results
+            document.getElementById('scoreDisplay').textContent = `${score}%`;
+            document.getElementById('correctCount').textContent = correct;
+            document.getElementById('wrongCount').textContent = wrong;
+            document.getElementById('skippedCount').textContent = skipped;
+
+            const resultsIcon = document.getElementById('resultsIcon');
+            if (passed) {
+                resultsIcon.className = 'results-icon pass';
+                resultsIcon.innerHTML = '<i class="fas fa-trophy"></i>';
+                document.getElementById('resultMessage').textContent = 'Congratulations! You passed!';
+            } else {
+                resultsIcon.className = 'results-icon fail';
+                resultsIcon.innerHTML = '<i class="fas fa-times"></i>';
+                document.getElementById('resultMessage').textContent = 'Better luck next time!';
+            }
+
+            hideLoading();
+            showPage('resultsPage');
+            showToast(passed ? 'Congratulations! Test completed!' : 'Test completed!', passed ? 'success' : 'info');
+        }
+
+        // Update Leaderboard
+        async function updateLeaderboard(score) {
+            try {
+                const snapshot = await db.ref('leaderboard').orderByChild('userName').equalTo(currentUser.name).once('value');
+                
+                if (snapshot.exists()) {
+                    // Update existing entry
+                    snapshot.forEach(child => {
+                        const data = child.val();
+                        const newTestsTaken = data.testsTaken + 1;
+                        const newTotalScore = data.totalScore + score;
+                        const newAvgScore = Math.round(newTotalScore / newTestsTaken);
+                        const newBestScore = Math.max(data.bestScore || 0, score);
+
+                        db.ref(`leaderboard/${child.key}`).update({
+                            testsTaken: newTestsTaken,
+                            totalScore: newTotalScore,
+                            avgScore: newAvgScore,
+                            bestScore: newBestScore,
+                            lastActive: Date.now()
+                        });
+                    });
+                } else {
+                    // Create new entry
+                    await db.ref('leaderboard').push({
+                        userName: currentUser.name,
+                        testsTaken: 1,
+                        totalScore: score,
+                        avgScore: score,
+                        bestScore: score,
+                        lastActive: Date.now()
+                    });
+                }
+            } catch (error) {
+                console.error('Error updating leaderboard:', error);
+            }
+        }
+
+        // Back to Tests
+        function backToTests() {
+            loadTests();
+            showPage('testSelectionPage');
+        }
+
+        // View Leaderboard
+        async function viewLeaderboard() {
+            showLoading();
+            
+            try {
+                const snapshot = await db.ref('leaderboard').orderByChild('avgScore').once('value');
+                const leaderboardData = [];
+
+                snapshot.forEach(child => {
+                    leaderboardData.push({
+                        id: child.key,
+                        ...child.val()
+                    });
+                });
+
+                // Sort by average score descending
+                leaderboardData.sort((a, b) => b.avgScore - a.avgScore);
+
+                renderLeaderboard(leaderboardData);
+                hideLoading();
+                showPage('leaderboardPage');
+            } catch (error) {
+                hideLoading();
+                console.error('Error loading leaderboard:', error);
+                showToast('Error loading leaderboard', 'error');
+            }
+        }
+
+        // Render Leaderboard
+        function renderLeaderboard(data) {
+            const tbody = document.getElementById('leaderboardBody');
+            
+            if (data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px;">
+                            <div class="empty-state">
+                                <i class="fas fa-trophy"></i>
+                                <h3>No Results Yet</h3>
+                                <p>Be the first to complete a test!</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = data.map((user, index) => {
+                const rank = index + 1;
+                let rankClass = 'rank-other';
+                if (rank === 1) rankClass = 'rank-1';
+                else if (rank === 2) rankClass = 'rank-2';
+                else if (rank === 3) rankClass = 'rank-3';
+
+                return `
+                    <tr class="animate-slideIn" style="animation-delay: ${index * 0.05}s">
+                        <td>
+                            <div class="rank-badge ${rankClass}">${rank}</div>
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 12px;">
+                                <div class="user-avatar">${user.userName.charAt(0).toUpperCase()}</div>
+                                <span style="font-weight: 500;">${user.userName}</span>
+                            </div>
+                        </td>
+                        <td>${user.testsTaken}</td>
+                        <td>${user.avgScore}%</td>
+                        <td>${user.bestScore}%</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Filter Leaderboard
+        function filterLeaderboard() {
+            const searchTerm = document.getElementById('leaderboardSearch').value.toLowerCase();
+            // Implementation for filtering
+        }
+
+        // Logout
+        function logout() {
+            if (sessionTimerInterval) clearInterval(sessionTimerInterval);
+            if (testTimerInterval) clearInterval(testTimerInterval);
+            
+            currentUser = null;
+            sessionEndTime = null;
+            
+            document.getElementById('accessCodeInput').value = '';
+            document.getElementById('adminCodeInput').value = '';
+            
+            showPage('landingPage');
+            showToast('Logged out successfully', 'success');
+        }
+
+        // ============ ADMIN FUNCTIONS ============
+
+        // Load Admin Data
+        async function loadAdminData() {
+            await loadAccessCodes();
+            await loadAdminTests();
+            await loadAdminLeaderboard();
+        }
+
+        // Switch Admin Tab
+        function switchAdminTab(tab) {
+            document.querySelectorAll('.admin-nav-item').forEach(item => item.classList.remove('active'));
+            event.target.closest('.admin-nav-item').classList.add('active');
+
+            document.querySelectorAll('.admin-tab').forEach(t => t.style.display = 'none');
+            document.getElementById(`${tab}Tab`).style.display = 'block';
+
+            if (tab === 'questions') {
+                loadTestsForSelect();
+            }
+        }
+
+        // Load Access Codes
+        async function loadAccessCodes() {
+            try {
+                const snapshot = await db.ref('accessCodes').once('value');
+                allAccessCodes = [];
+
+                snapshot.forEach(child => {
+                    allAccessCodes.push({
+                        id: child.key,
+                        ...child.val()
+                    });
+                });
+
+                renderAccessCodes();
+            } catch (error) {
+                console.error('Error loading access codes:', error);
+            }
+        }
+
+        // Render Access Codes
+        function renderAccessCodes(codes = allAccessCodes) {
+            const tbody = document.getElementById('codesTableBody');
+            
+            if (codes.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px;">
+                            <div class="empty-state">
+                                <i class="fas fa-key"></i>
+                                <h3>No Access Codes</h3>
+                                <p>Click "Add Access Code" to create one.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = codes.map(code => {
+                const now = Date.now();
+                const isExpired = code.expiresAt < now;
+                const remaining = code.expiresAt - now;
+                const minutes = Math.max(0, Math.floor(remaining / 60000));
+                const seconds = Math.max(0, Math.floor((remaining % 60000) / 1000));
+
+                return `
+                    <tr>
+                        <td><strong>${code.userName}</strong></td>
+                        <td><code style="background: var(--lighter-gray); padding: 4px 8px; border-radius: 4px;">${code.code}</code></td>
+                        <td>${isExpired ? '00:00' : `${minutes}:${seconds.toString().padStart(2, '0')}`}</td>
+                        <td>
+                            <span class="status-badge ${isExpired ? 'status-expired' : 'status-active'}">
+                                ${isExpired ? 'Expired' : 'Active'}
+                            </span>
+                        </td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn btn-success btn-sm btn-icon" onclick="openExtendModal('${code.id}')" 
+                                        title="Extend Time" ${isExpired ? 'disabled' : ''}>
+                                    <i class="fas fa-clock"></i>
+                                </button>
+                                <button class="btn btn-danger btn-sm btn-icon" onclick="deleteItem('${code.id}', 'code')" 
+                                        title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Filter Codes
+        function filterCodes() {
+            const searchTerm = document.getElementById('codeSearchInput').value.toLowerCase();
+            const filtered = allAccessCodes.filter(code => 
+                code.userName.toLowerCase().includes(searchTerm) ||
+                code.code.toLowerCase().includes(searchTerm)
+            );
+            renderAccessCodes(filtered);
+        }
+
+        // Open Add Code Modal
+        function openAddCodeModal() {
+            document.getElementById('newUserName').value = '';
+            document.getElementById('codeDuration').value = '';
+            openModal('addCodeModal');
+        }
+
+        // Generate Access Code
+        async function generateAccessCode() {
+            const userName = document.getElementById('newUserName').value.trim();
+            const duration = parseInt(document.getElementById('codeDuration').value);
+
+            if (!userName) {
+                showToast('Please enter a user name', 'warning');
+                return;
+            }
+
+            if (!duration || duration < 1) {
+                showToast('Please enter a valid duration', 'warning');
+                return;
+            }
+
+            const prefix = userName.substring(0, 3).toUpperCase().replace(/[^A-Z]/g, 'X');
+            const code = prefix + generateRandomString(4);
+
+            showLoading();
+
+            try {
+                await db.ref('accessCodes').push({
+                    userName: userName,
+                    code: code,
+                    expiresAt: Date.now() + (duration * 60 * 1000),
+                    createdAt: Date.now()
+                });
+
+                closeModal('addCodeModal');
+                await loadAccessCodes();
+                hideLoading();
+                showToast(`Access code generated: ${code}`, 'success');
+            } catch (error) {
+                hideLoading();
+                console.error('Error generating code:', error);
+                showToast('Error generating access code', 'error');
+            }
+        }
+
+        // Open Extend Modal
+        function openExtendModal(codeId) {
+            document.getElementById('extendCodeId').value = codeId;
+            document.getElementById('extendMinutes').value = '';
+            openModal('extendTimeModal');
+        }
+
+        // Extend Access Time
+        async function extendAccessTime() {
+            const codeId = document.getElementById('extendCodeId').value;
+            const minutes = parseInt(document.getElementById('extendMinutes').value);
+
+            if (!minutes || minutes < 1) {
+                showToast('Please enter valid minutes', 'warning');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const snapshot = await db.ref(`accessCodes/${codeId}`).once('value');
+                const codeData = snapshot.val();
+
+                const currentExpiry = Math.max(codeData.expiresAt, Date.now());
+                const newExpiry = currentExpiry + (minutes * 60 * 1000);
+
+                await db.ref(`accessCodes/${codeId}`).update({
+                    expiresAt: newExpiry
+                });
+
+                closeModal('extendTimeModal');
+                await loadAccessCodes();
+                hideLoading();
+                showToast(`Added ${minutes} minutes`, 'success');
+            } catch (error) {
+                hideLoading();
+                console.error('Error extending time:', error);
+                showToast('Error extending time', 'error');
+            }
+        }
+
+        // Load Admin Tests
+        async function loadAdminTests() {
+            try {
+                const snapshot = await db.ref('tests').once('value');
+                allTests = [];
+
+                snapshot.forEach(child => {
+                    allTests.push({
+                        id: child.key,
+                        ...child.val()
+                    });
+                });
+
+                renderAdminTests();
+            } catch (error) {
+                console.error('Error loading tests:', error);
+            }
+        }
+
+        // Render Admin Tests
+        function renderAdminTests(tests = allTests) {
+            const tbody = document.getElementById('testsTableBody');
+            
+            if (tests.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="4" style="text-align: center; padding: 40px;">
+                            <div class="empty-state">
+                                <i class="fas fa-file-alt"></i>
+                                <h3>No Tests</h3>
+                                <p>Click "Add Test" to create one.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = tests.map(test => {
+                const questions = test.questions || [];
+                const date = new Date(test.createdAt).toLocaleDateString();
+
+                return `
+                    <tr>
+                        <td><strong>${test.name}</strong></td>
+                        <td>${questions.length}</td>
+                        <td>${date}</td>
+                        <td>
+                            <div class="action-btns">
+                                <button class="btn btn-primary btn-sm btn-icon" onclick="editTest('${test.id}')" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <button class="btn btn-danger btn-sm btn-icon" onclick="deleteItem('${test.id}', 'test')" title="Delete">
+                                    <i class="fas fa-trash"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Filter Admin Tests
+        function filterAdminTests() {
+            const searchTerm = document.getElementById('adminTestSearchInput').value.toLowerCase();
+            const filtered = allTests.filter(test => 
+                test.name.toLowerCase().includes(searchTerm)
+            );
+            renderAdminTests(filtered);
+        }
+
+        // Open Add Test Modal
+        function openAddTestModal() {
+            document.getElementById('testModalTitle').textContent = 'Add New Test';
+            document.getElementById('testName').value = '';
+            document.getElementById('testDescription').value = '';
+            document.getElementById('testTimeLimit').value = '';
+            document.getElementById('editTestId').value = '';
+            openModal('testModal');
+        }
+
+        // Edit Test
+        function editTest(testId) {
+            const test = allTests.find(t => t.id === testId);
+            if (!test) return;
+
+            document.getElementById('testModalTitle').textContent = 'Edit Test';
+            document.getElementById('testName').value = test.name;
+            document.getElementById('testDescription').value = test.description || '';
+            document.getElementById('testTimeLimit').value = test.timeLimit || 30;
+            document.getElementById('editTestId').value = testId;
+            openModal('testModal');
+        }
+
+        // Save Test
+        async function saveTest() {
+            const name = document.getElementById('testName').value.trim();
+            const description = document.getElementById('testDescription').value.trim();
+            const timeLimit = parseInt(document.getElementById('testTimeLimit').value);
+            const editId = document.getElementById('editTestId').value;
+
+            if (!name) {
+                showToast('Please enter a test name', 'warning');
+                return;
+            }
+
+            if (!timeLimit || timeLimit < 1) {
+                showToast('Please enter a valid time limit', 'warning');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const testData = {
+                    name: name,
+                    description: description,
+                    timeLimit: timeLimit,
+                    updatedAt: Date.now()
+                };
+
+                if (editId) {
+                    await db.ref(`tests/${editId}`).update(testData);
+                    showToast('Test updated successfully', 'success');
+                } else {
+                    testData.createdAt = Date.now();
+                    testData.questions = [];
+                    await db.ref('tests').push(testData);
+                    showToast('Test created successfully', 'success');
+                }
+
+                closeModal('testModal');
+                await loadAdminTests();
+                hideLoading();
+            } catch (error) {
+                hideLoading();
+                console.error('Error saving test:', error);
+                showToast('Error saving test', 'error');
+            }
+        }
+
+        // Load Tests for Select
+        async function loadTestsForSelect() {
+            const select1 = document.getElementById('questionTestSelect');
+            const select2 = document.getElementById('questionModalTestSelect');
+
+            const options = allTests.map(test => 
+                `<option value="${test.id}">${test.name}</option>`
+            ).join('');
+
+            select1.innerHTML = '<option value="">Choose a test...</option>' + options;
+            select2.innerHTML = '<option value="">Choose a test...</option>' + options;
+        }
+
+        // Load Questions for Test
+        async function loadQuestionsForTest() {
+            const testId = document.getElementById('questionTestSelect').value;
+            
+            if (!testId) {
+                document.getElementById('questionsTable').style.display = 'none';
+                return;
+            }
+
+            const test = allTests.find(t => t.id === testId);
+            if (!test) return;
+
+            document.getElementById('questionsTable').style.display = 'table';
+            renderQuestions(test.questions || [], testId);
+        }
+
+        // Render Questions
+        function renderQuestions(questions, testId) {
+            const tbody = document.getElementById('questionsTableBody');
+
+            if (questions.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px;">
+                            <div class="empty-state">
+                                <i class="fas fa-question-circle"></i>
+                                <h3>No Questions</h3>
+                                <p>Click "Add Question" to create one.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = questions.map((q, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>${q.question.substring(0, 50)}${q.question.length > 50 ? '...' : ''}</td>
+                    <td>${Object.values(q.options).length}</td>
+                    <td><strong>${q.correctAnswer}</strong></td>
+                    <td>
+                        <button class="btn btn-danger btn-sm btn-icon" 
+                                onclick="deleteQuestion('${testId}', ${index})" title="Delete">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // Open Add Question Modal
+        function openAddQuestionModal() {
+            document.getElementById('questionModalTestSelect').value = document.getElementById('questionTestSelect').value;
+            document.getElementById('questionText').value = '';
+            document.getElementById('optionA').value = '';
+            document.getElementById('optionB').value = '';
+            document.getElementById('optionC').value = '';
+            document.getElementById('optionD').value = '';
+            document.getElementById('correctAnswer').value = '';
+            openModal('questionModal');
+        }
+
+        // Save Question
+        async function saveQuestion() {
+            const testId = document.getElementById('questionModalTestSelect').value;
+            const question = document.getElementById('questionText').value.trim();
+            const optionA = document.getElementById('optionA').value.trim();
+            const optionB = document.getElementById('optionB').value.trim();
+            const optionC = document.getElementById('optionC').value.trim();
+            const optionD = document.getElementById('optionD').value.trim();
+            const correctAnswer = document.getElementById('correctAnswer').value;
+
+            if (!testId || !question || !optionA || !optionB || !optionC || !optionD || !correctAnswer) {
+                showToast('Please fill in all fields', 'warning');
+                return;
+            }
+
+            showLoading();
+
+            try {
+                const test = allTests.find(t => t.id === testId);
+                const questions = test.questions || [];
+
+                questions.push({
+                    question: question,
+                    options: { A: optionA, B: optionB, C: optionC, D: optionD },
+                    correctAnswer: correctAnswer
+                });
+
+                await db.ref(`tests/${testId}/questions`).set(questions);
+
+                closeModal('questionModal');
+                await loadAdminTests();
+                document.getElementById('questionTestSelect').value = testId;
+                loadQuestionsForTest();
+                hideLoading();
+                showToast('Question added successfully', 'success');
+            } catch (error) {
+                hideLoading();
+                console.error('Error saving question:', error);
+                showToast('Error saving question', 'error');
+            }
+        }
+
+        // Delete Question
+        async function deleteQuestion(testId, index) {
+            if (!confirm('Are you sure you want to delete this question?')) return;
+
+            showLoading();
+
+            try {
+                const test = allTests.find(t => t.id === testId);
+                const questions = test.questions || [];
+                questions.splice(index, 1);
+
+                await db.ref(`tests/${testId}/questions`).set(questions);
+
+                await loadAdminTests();
+                document.getElementById('questionTestSelect').value = testId;
+                loadQuestionsForTest();
+                hideLoading();
+                showToast('Question deleted', 'success');
+            } catch (error) {
+                hideLoading();
+                console.error('Error deleting question:', error);
+                showToast('Error deleting question', 'error');
+            }
+        }
+
+        // Delete Item (Generic)
+        function deleteItem(id, type) {
+            document.getElementById('deleteItemId').value = id;
+            document.getElementById('deleteItemType').value = type;
+            
+            let message = 'Are you sure you want to delete this item?';
+            if (type === 'code') message = 'Are you sure you want to delete this access code?';
+            if (type === 'test') message = 'Are you sure you want to delete this test and all its questions?';
+            
+            document.getElementById('confirmMessage').textContent = message;
+            openModal('confirmModal');
+        }
+
+        // Confirm Delete
+        async function confirmDelete() {
+            const id = document.getElementById('deleteItemId').value;
+            const type = document.getElementById('deleteItemType').value;
+
+            showLoading();
+
+            try {
+                if (type === 'code') {
+                    await db.ref(`accessCodes/${id}`).remove();
+                    await loadAccessCodes();
+                } else if (type === 'test') {
+                    await db.ref(`tests/${id}`).remove();
+                    await loadAdminTests();
+                }
+
+                closeModal('confirmModal');
+                hideLoading();
+                showToast('Deleted successfully', 'success');
+            } catch (error) {
+                hideLoading();
+                console.error('Error deleting:', error);
+                showToast('Error deleting item', 'error');
+            }
+        }
+
+        // Load Admin Leaderboard
+        async function loadAdminLeaderboard() {
+            try {
+                const snapshot = await db.ref('leaderboard').orderByChild('avgScore').once('value');
+                const data = [];
+
+                snapshot.forEach(child => {
+                    data.push({
+                        id: child.key,
+                        ...child.val()
+                    });
+                });
+
+                data.sort((a, b) => b.avgScore - a.avgScore);
+                renderAdminLeaderboard(data);
+            } catch (error) {
+                console.error('Error loading leaderboard:', error);
+            }
+        }
+
+        // Render Admin Leaderboard
+        function renderAdminLeaderboard(data) {
+            const tbody = document.getElementById('adminLeaderboardBody');
+
+            if (data.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 40px;">
+                            <div class="empty-state">
+                                <i class="fas fa-trophy"></i>
+                                <h3>No Data</h3>
+                                <p>No test results yet.</p>
+                            </div>
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = data.map((user, index) => {
+                const rank = index + 1;
+                let rankClass = 'rank-other';
+                if (rank === 1) rankClass = 'rank-1';
+                else if (rank === 2) rankClass = 'rank-2';
+                else if (rank === 3) rankClass = 'rank-3';
+
+                return `
+                    <tr>
+                        <td><div class="rank-badge ${rankClass}">${rank}</div></td>
+                        <td><strong>${user.userName}</strong></td>
+                        <td>${user.testsTaken}</td>
+                        <td>${user.avgScore}%</td>
+                        <td>${user.bestScore}%</td>
+                    </tr>
+                `;
+            }).join('');
+        }
+
+        // Filter Admin Leaderboard
+        function filterAdminLeaderboard() {
+            const searchTerm = document.getElementById('adminLeaderboardSearch').value.toLowerCase();
+            // Implementation
+        }
+
+        // Initialize on Load
+        document.addEventListener('DOMContentLoaded', () => {
+            initializeDefaultData();
+        });
+
+        // Refresh access codes table periodically
+        setInterval(() => {
+            if (document.getElementById('adminPage').classList.contains('active')) {
+                loadAccessCodes();
+            }
+        }, 10000);
+    </script>
+</body>
+</html>
