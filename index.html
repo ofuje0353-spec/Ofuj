@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CBT Testing System</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Welcome Message Modal -->
+    <div id="welcome-modal" class="modal">
+        <div class="modal-content animate-scale">
+            <div class="modal-header">
+                <i class="fas fa-info-circle"></i>
+                <h2>Welcome to CBT Testing System</h2>
+            </div>
+            <div class="modal-body">
+                <p>To get your access code, please contact:</p>
+                <div class="contact-info">
+                    <i class="fas fa-phone"></i>
+                    <a href="tel:08107528980">08107528980</a>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeWelcomeModal()" class="btn btn-primary">Got it!</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Landing Page -->
+    <div id="landing-page" class="page active">
+        <div class="landing-container">
+            <div class="landing-header animate-fade-in">
+                <i class="fas fa-graduation-cap"></i>
+                <h1>CBT Testing System</h1>
+                <p>Enter your access code to begin</p>
+            </div>
+            
+            <div class="login-card animate-slide-up">
+                <div class="tab-buttons">
+                    <button class="tab-btn active" onclick="switchTab('user')">
+                        <i class="fas fa-user"></i> User Login
+                    </button>
+                    <button class="tab-btn" onclick="switchTab('admin')">
+                        <i class="fas fa-shield-alt"></i> Admin Login
+                    </button>
+                </div>
+
+                <!-- User Login -->
+                <div id="user-login" class="tab-content active">
+                    <input type="text" id="access-code-input" placeholder="Enter Access Code" class="input-field">
+                    <button onclick="verifyAccessCode()" class="btn btn-primary btn-block">
+                        <i class="fas fa-sign-in-alt"></i> Access Tests
+                    </button>
+                </div>
+
+                <!-- Admin Login -->
+                <div id="admin-login" class="tab-content">
+                    <input type="password" id="admin-code-input" placeholder="Enter Admin Code" class="input-field">
+                    <button onclick="verifyAdminCode()" class="btn btn-primary btn-block">
+                        <i class="fas fa-lock-open"></i> Access Admin Panel
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- User Dashboard -->
+    <div id="user-dashboard" class="page">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <i class="fas fa-graduation-cap"></i>
+                <span>CBT System</span>
+            </div>
+            <div class="nav-user">
+                <span id="user-name-display"></span>
+                <button onclick="logout()" class="btn btn-sm btn-outline">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </nav>
+
+        <div class="dashboard-container">
+            <div class="dashboard-tabs">
+                <button class="dash-tab-btn active" onclick="switchDashTab('tests')">
+                    <i class="fas fa-clipboard-list"></i> Available Tests
+                </button>
+                <button class="dash-tab-btn" onclick="switchDashTab('leaderboard')">
+                    <i class="fas fa-trophy"></i> Leaderboard
+                </button>
+            </div>
+
+            <!-- Tests Section -->
+            <div id="tests-section" class="dash-content active">
+                <div class="section-header">
+                    <h2><i class="fas fa-clipboard-list"></i> Available Tests</h2>
+                    <div class="search-box">
+                        <i class="fas fa-search"></i>
+                        <input type="text" id="test-search" placeholder="Search tests..." oninput="searchTests()">
+                    </div>
+                </div>
+                <div id="tests-grid" class="tests-grid"></div>
+            </div>
+
+            <!-- Leaderboard Section -->
+            <div id="leaderboard-section" class="dash-content">
+                <div class="section-header">
+                    <h2><i class="fas fa-trophy"></i> Leaderboard</h2>
+                </div>
+                <div id="leaderboard-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Test Taking Page -->
+    <div id="test-page" class="page">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <i class="fas fa-graduation-cap"></i>
+                <span id="test-title-nav"></span>
+            </div>
+            <div class="nav-user">
+                <div class="timer">
+                    <i class="fas fa-clock"></i>
+                    <span id="timer-display">00:00</span>
+                </div>
+            </div>
+        </nav>
+
+        <div class="test-container">
+            <div class="test-sidebar">
+                <h3><i class="fas fa-list-ol"></i> Question Navigation</h3>
+                <div id="question-nav" class="question-nav"></div>
+                <button onclick="submitTest()" class="btn btn-success btn-block">
+                    <i class="fas fa-paper-plane"></i> Submit Test
+                </button>
+                <button onclick="exitTest()" class="btn btn-outline btn-block">
+                    <i class="fas fa-times"></i> Exit
+                </button>
+            </div>
+
+            <div class="test-content">
+                <div id="question-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Admin Dashboard -->
+    <div id="admin-dashboard" class="page">
+        <nav class="navbar">
+            <div class="nav-brand">
+                <i class="fas fa-shield-alt"></i>
+                <span>Admin Panel</span>
+            </div>
+            <div class="nav-user">
+                <button onclick="logout()" class="btn btn-sm btn-outline">
+                    <i class="fas fa-sign-out-alt"></i> Logout
+                </button>
+            </div>
+        </nav>
+
+        <div class="dashboard-container">
+            <div class="dashboard-tabs">
+                <button class="dash-tab-btn active" onclick="switchAdminTab('access-codes')">
+                    <i class="fas fa-key"></i> Access Codes
+                </button>
+                <button class="dash-tab-btn" onclick="switchAdminTab('tests-manage')">
+                    <i class="fas fa-tasks"></i> Manage Tests
+                </button>
+                <button class="dash-tab-btn" onclick="switchAdminTab('questions-manage')">
+                    <i class="fas fa-question-circle"></i> Manage Questions
+                </button>
+            </div>
+
+            <!-- Access Codes Section -->
+            <div id="access-codes-section" class="dash-content active">
+                <div class="section-header">
+                    <h2><i class="fas fa-key"></i> Access Code Management</h2>
+                    <button onclick="showAddAccessCodeModal()" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Access Code
+                    </button>
+                </div>
+                <div id="access-codes-grid" class="access-codes-grid"></div>
+            </div>
+
+            <!-- Tests Management Section -->
+            <div id="tests-manage-section" class="dash-content">
+                <div class="section-header">
+                    <h2><i class="fas fa-tasks"></i> Tests Management</h2>
+                    <button onclick="showAddTestModal()" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Test
+                    </button>
+                </div>
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="admin-test-search" placeholder="Search tests..." oninput="searchAdminTests()">
+                </div>
+                <div id="admin-tests-grid" class="tests-grid"></div>
+            </div>
+
+            <!-- Questions Management Section -->
+            <div id="questions-manage-section" class="dash-content">
+                <div class="section-header">
+                    <h2><i class="fas fa-question-circle"></i> Questions Management</h2>
+                    <button onclick="showAddQuestionModal()" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> Add Question
+                    </button>
+                </div>
+                <div class="filter-group">
+                    <label>Filter by Test:</label>
+                    <select id="question-filter-test" onchange="filterQuestions()" class="input-field">
+                        <option value="">All Tests</option>
+                    </select>
+                </div>
+                <div id="questions-list" class="questions-list"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Access Code Modal -->
+    <div id="add-access-code-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-key"></i> Add Access Code</h2>
+                <span class="close" onclick="closeModal('add-access-code-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>User Name:</label>
+                    <input type="text" id="new-user-name" class="input-field" placeholder="Enter user name">
+                </div>
+                <div class="form-group">
+                    <label>Duration (minutes):</label>
+                    <input type="number" id="access-duration" class="input-field" placeholder="Enter duration" value="60">
+                </div>
+                <div class="form-group">
+                    <label>Generated Code:</label>
+                    <input type="text" id="generated-code" class="input-field" readonly>
+                    <button onclick="generateAccessCode()" class="btn btn-sm btn-outline">
+                        <i class="fas fa-sync"></i> Generate
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeModal('add-access-code-modal')" class="btn btn-outline">Cancel</button>
+                <button onclick="saveAccessCode()" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Extend Time Modal -->
+    <div id="extend-time-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-clock"></i> Extend Access Time</h2>
+                <span class="close" onclick="closeModal('extend-time-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Additional Minutes:</label>
+                    <input type="number" id="extend-minutes" class="input-field" placeholder="Enter minutes" value="30">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeModal('extend-time-modal')" class="btn btn-outline">Cancel</button>
+                <button onclick="confirmExtendTime()" class="btn btn-primary">
+                    <i class="fas fa-check"></i> Extend
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Test Modal -->
+    <div id="add-test-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2><i class="fas fa-tasks"></i> <span id="test-modal-title">Add Test</span></h2>
+                <span class="close" onclick="closeModal('add-test-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Test Name:</label>
+                    <input type="text" id="test-name" class="input-field" placeholder="Enter test name">
+                </div>
+                <div class="form-group">
+                    <label>Number of Questions:</label>
+                    <input type="number" id="test-questions-count" class="input-field" placeholder="Number of questions" value="10">
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeModal('add-test-modal')" class="btn btn-outline">Cancel</button>
+                <button onclick="saveTest()" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add/Edit Question Modal -->
+    <div id="add-question-modal" class="modal">
+        <div class="modal-content modal-large">
+            <div class="modal-header">
+                <h2><i class="fas fa-question-circle"></i> <span id="question-modal-title">Add Question</span></h2>
+                <span class="close" onclick="closeModal('add-question-modal')">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Select Test:</label>
+                    <select id="question-test-select" class="input-field">
+                        <option value="">Select a test</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Question Text:</label>
+                    <textarea id="question-text" class="input-field" rows="3" placeholder="Enter question"></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Option A:</label>
+                    <input type="text" id="option-a" class="input-field" placeholder="Enter option A">
+                </div>
+                <div class="form-group">
+                    <label>Option B:</label>
+                    <input type="text" id="option-b" class="input-field" placeholder="Enter option B">
+                </div>
+                <div class="form-group">
+                    <label>Option C:</label>
+                    <input type="text" id="option-c" class="input-field" placeholder="Enter option C">
+                </div>
+                <div class="form-group">
+                    <label>Option D:</label>
+                    <input type="text" id="option-d" class="input-field" placeholder="Enter option D">
+                </div>
+                <div class="form-group">
+                    <label>Correct Answer:</label>
+                    <select id="correct-answer" class="input-field">
+                        <option value="A">A</option>
+                        <option value="B">B</option>
+                        <option value="C">C</option>
+                        <option value="D">D</option>
+                    </select>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button onclick="closeModal('add-question-modal')" class="btn btn-outline">Cancel</button>
+                <button onclick="saveQuestion()" class="btn btn-primary">
+                    <i class="fas fa-save"></i> Save
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Firebase Configuration -->
+    <script type="module" src="js/script.js"></script>
+</body>
+</html>
